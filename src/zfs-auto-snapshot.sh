@@ -56,7 +56,7 @@ opt_factor='1'
 
 # if pipe needs to be used, uncomment opt_pipe="|". arcfour or blowfish will reduce cpu load caused by ssh and mbuffer will 
 # boost network bandwidth and mitigate low and high peaks during transfer
-opt_sendtocmd='ssh -2 root@media -c arcfour,blowfish-cbc -i /var/root/.ssh/media.rsa'
+opt_sendtocmd='ssh -2 root@romulus -c arcfour,blowfish-cbc -i /Users/nvandal/.ssh/id_rsa'
 opt_buffer=''
 #opt_buffer='mbuffer -q -m 250MB |' 
 opt_pipe='|'
@@ -1110,10 +1110,10 @@ then
 	PLATFORM_REM=$(eval "$opt_sendtocmd" "uname")
 
 	case "$PLATFORM_REM" in 
-		(Linux|Darwin)
+		(Linux|Darwin|SunOS)
 			;;
 		(*)
-			print_log error "Remote system not known ($PLATFORM_REM) - needs one of Darwin, Linux. Exiting."
+			print_log error "Remote system not known ($PLATFORM_REM) - needs one of Darwin, Linux, SunOS. Exiting."
 			exit 301
 			;;
 	esac
