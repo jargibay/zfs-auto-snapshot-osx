@@ -17,8 +17,6 @@
 			<string>--destroy</string>
 			<string>//</string>
 		</array>
-		<key>RunAtLoad</key>
-		<true/>
 		<key>StartCalendarInterval</key>
 		<dict>
 			<key>Minute</key>

@@ -13,3 +13,16 @@ install:
 	launchctl load -w /Library/LaunchDaemons/org.zfs.snapshot.weekly.plist
 	launchctl load -w /Library/LaunchDaemons/org.zfs.snapshot.monthly.plist
 
+uninstall:
+
+	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.frequent.plist
+	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.hourly.plist
+	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.daily.plist
+	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.weekly.plist
+	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.monthly.plist
+	rm /Library/LaunchDaemons/org.zfs.snapshot.frequent.plist
+	rm /Library/LaunchDaemons/org.zfs.snapshot.hourly.plist
+	rm /Library/LaunchDaemons/org.zfs.snapshot.daily.plist
+	rm /Library/LaunchDaemons/org.zfs.snapshot.weekly.plist
+	rm /Library/LaunchDaemons/org.zfs.snapshot.monthly.plist
+	rm /usr/sbin/zfs-auto-snapshot.sh

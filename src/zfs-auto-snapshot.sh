@@ -56,7 +56,7 @@ opt_factor='1'
 
 # if pipe needs to be used, uncomment opt_pipe="|". arcfour or blowfish will reduce cpu load caused by ssh and mbuffer will 
 # boost network bandwidth and mitigate low and high peaks during transfer
-opt_sendtocmd='ssh -2 root@romulus -c arcfour,blowfish-cbc -i /Users/nvandal/.ssh/id_rsa'
+opt_sendtocmd='ssh -2 root@romulus -c arcfour,blowfish-cbc -i /var/root/.ssh/id_rsa'
 opt_buffer=''
 #opt_buffer='mbuffer -q -m 250MB |' 
 opt_pipe='|'
