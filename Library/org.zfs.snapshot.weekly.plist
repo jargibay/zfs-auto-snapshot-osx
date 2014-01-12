@@ -11,7 +11,7 @@
                 <string>--quiet</string>
                 <string>--keep=8</string>
                 <string>--label=weekly</string>
-			    <string>--send-incr=zones/tank/archive/mac/nicks-macbook-air</string>
+			    <string>--send-incr=tank/archive/mac/nicks-macbook-air</string>
 			    <string>--remove-local=4</string>
 		    	<string>--create</string>
 			    <string>--fallback</string>
