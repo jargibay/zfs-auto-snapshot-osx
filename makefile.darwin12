@@ -1,28 +1,16 @@
 
 install:
 
+	install Library/org.zfs.snapshot.daily.plist /Library/LaunchDaemons/org.zfs.snapshot.daily.plist
 	install Library/org.zfs.snapshot.frequent.plist /Library/LaunchDaemons/org.zfs.snapshot.frequent.plist
 	install Library/org.zfs.snapshot.hourly.plist /Library/LaunchDaemons/org.zfs.snapshot.hourly.plist
-	install Library/org.zfs.snapshot.daily.plist /Library/LaunchDaemons/org.zfs.snapshot.daily.plist
-	install Library/org.zfs.snapshot.weekly.plist /Library/LaunchDaemons/org.zfs.snapshot.weekly.plist
 	install Library/org.zfs.snapshot.monthly.plist /Library/LaunchDaemons/org.zfs.snapshot.monthly.plist
+	install Library/org.zfs.snapshot.weekly.plist /Library/LaunchDaemons/org.zfs.snapshot.weekly.plist
 	install src/zfs-auto-snapshot.sh /usr/sbin/zfs-auto-snapshot.sh
-	launchctl load -w /Library/LaunchDaemons/org.zfs.snapshot.frequent.plist
-	launchctl load -w /Library/LaunchDaemons/org.zfs.snapshot.hourly.plist
-	launchctl load -w /Library/LaunchDaemons/org.zfs.snapshot.daily.plist
-	launchctl load -w /Library/LaunchDaemons/org.zfs.snapshot.weekly.plist
-	launchctl load -w /Library/LaunchDaemons/org.zfs.snapshot.monthly.plist
+	launchctl load -w /Library/LaunchDaemons/org.zfs.snapshot.*.plist
 
 uninstall:
 
-	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.frequent.plist
-	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.hourly.plist
-	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.daily.plist
-	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.weekly.plist
-	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.monthly.plist
-	rm /Library/LaunchDaemons/org.zfs.snapshot.frequent.plist
-	rm /Library/LaunchDaemons/org.zfs.snapshot.hourly.plist
-	rm /Library/LaunchDaemons/org.zfs.snapshot.daily.plist
-	rm /Library/LaunchDaemons/org.zfs.snapshot.weekly.plist
-	rm /Library/LaunchDaemons/org.zfs.snapshot.monthly.plist
+	launchctl unload -w /Library/LaunchDaemons/org.zfs.snapshot.*.plist
+	rm /Library/LaunchDaemons/org.zfs.snapshot.*.plist
 	rm /usr/sbin/zfs-auto-snapshot.sh

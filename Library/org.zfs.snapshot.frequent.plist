@@ -8,8 +8,9 @@
 	<array>
 		<string>/usr/sbin/zfs-auto-snapshot.sh</string>
 		<string>--syslog</string>
-		<string>--label=frequent</string>
+		<string>--quiet</string>
 		<string>--keep=4</string>
+		<string>--label=frequent</string>
 		<string>--send-incr=zones/tank/archive/mac/nicks-macbook-air</string>
 		<string>--remove-local=4</string>
 		<string>--create</string>

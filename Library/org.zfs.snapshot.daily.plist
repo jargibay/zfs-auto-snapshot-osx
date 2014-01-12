@@ -1,28 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-	<dict>
-		<key>Label</key>
-		<string>org.zfs.snapshot.daily</string>
-		<key>ProgramArguments</key>
-		<array>
-			<string>/usr/sbin/zfs-auto-snapshot.sh</string>
-			<string>--syslog</string>
-			<string>--keep=31</string>
-			<string>--label=daily</string>
-			<string>--send-incr=zones/tank/archive/mac/nicks-macbook-air</string>
-			<string>--remove-local=4</string>
-			<string>--create</string>
-			<string>--fallback</string>
-			<string>--destroy</string>
-			<string>//</string>
-		</array>
-		<key>StartCalendarInterval</key>
-		<dict>
-			<key>Minute</key>
-			<integer>2</integer>
-			<key>Hour</key>
-			<integer>23</integer>
-		</dict>
-	</dict>
+<dict>
+        <key>Label</key>
+        <string>org.zfs.snapshot.daily</string>
+        <key>ProgramArguments</key>
+        <array>
+                <string>/usr/sbin/zfs-auto-snapshot.sh</string>
+                <string>--syslog</string>
+                <string>--quiet</string>
+                <string>--keep=31</string>
+                <string>--label=daily</string>
+			    <string>--send-incr=zones/tank/archive/mac/nicks-macbook-air</string>
+			    <string>--remove-local=4</string>
+			    <string>--create</string>
+			    <string>--fallback</string>
+                <string>//</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>StartInterval</key>
+        <integer>86400</integer>
+</dict>
 </plist>

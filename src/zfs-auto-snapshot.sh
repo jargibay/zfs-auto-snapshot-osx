@@ -53,6 +53,8 @@ opt_rotation='rr'
 opt_base='day'
 opt_namechange='0'
 opt_factor='1'
+opt_limit='3'
+opt_includeall='0'
 
 # if pipe needs to be used, uncomment opt_pipe="|". arcfour or blowfish will reduce cpu load caused by ssh and mbuffer will 
 # boost network bandwidth and mitigate low and high peaks during transfer
@@ -90,7 +92,10 @@ print_usage ()
 {
     echo "Usage: $0 [options] [-l label] <'//' | name [name...]>
 
-    --default-exclude  Exclude datasets if com.sun:auto-snapshot is unset.
+    --default-exclude  Exclude datasets if com.sun:auto-snapshot is unset
+                       (not explicitly set to true).
+    --include-all      Include datasets even if com.sun:auto-snapshot is set
+                       to false.
     --remove-local=n   Remove local snapshots after successfully sent via 
                        --send-incr or --send-full but still keeps n newest
                        snapshots (this will destroy snapshots named according
@@ -415,9 +420,11 @@ delete_rotation_hanoi ()
 
 	}
 
-	destroy "$(printf "%s\n%s\n" "$SNAPSHOTS_OLD_LOC" "$FSNAME@$SNAPNAME" )" "" "local" "$FSNAME" "$FLAGS"
-	if [ "$SND_RC" -eq '0' ] && [ "$opt_send" != "no" ]; then
-		destroy "$(printf "%s\n%s\n" "$SNAPSHOTS_OLD_REM" "$opt_sendprefix/$FSNAME@$SNAPNAME" )" "$opt_sendprefix/" "remote" "$FSNAME" "$FLAGS"		
+	if [ "$SND_RC" -eq '0' -a "$opt_send" != "no" -o "$opt_send" = "no" ]; then
+		destroy "$(printf "%s\n%s\n" "$SNAPSHOTS_OLD_LOC" "$FSNAME@$SNAPNAME" )" "" "local" "$FSNAME" "$FLAGS"
+		if [ "$opt_send" != "no" ]; then
+			destroy "$(printf "%s\n%s\n" "$SNAPSHOTS_OLD_REM" "$opt_sendprefix/$FSNAME@$SNAPNAME" )" "$opt_sendprefix/" "remote" "$FSNAME" "$FLAGS"		
+		fi
 	fi
 
 }
@@ -657,7 +664,7 @@ esac
 GETOPT=$("$getopt_cmd" \
 	--longoptions=default-exclude,dry-run,skip-scrub,recursive,send-atonce,rotation:,local-only \
 	--longoptions=event:,keep:,label:,prefix:,sep:,create,fallback,rollback,base:,factor: \
-	--longoptions=debug,help,quiet,syslog,verbose,send-full:,send-incr:,remove-local:,destroy \
+	--longoptions=debug,help,quiet,syslog,verbose,send-full:,send-incr:,remove-local:,destroy,include-all \
 	--options=dnshe:l:k:p:rs:qgvfixcXFRba:o: \
 	-- "$@" ) \
 	|| exit 128
@@ -707,6 +714,11 @@ do
 		(--local-only)
 			opt_sendtocmd=''
 			opt_buffer=''
+			shift 1
+			;;
+		(--include-all)
+			opt_includeall='1'
+			print_log debug "Not considering com.sun:auto-snapshot."
 			shift 1
 			;;
 		(-k|--keep)
@@ -939,21 +951,25 @@ ZPOOLS_NOTREADY=$(echo "$ZPOOL_STATUS" | awk -F ': ' \
 	$1 ~ /^ *state$/ && $2 !~ /ONLINE|DEGRADED/ { print pool } ' \
 	| sort )
 
-# Get a list of datasets for which snapshots are not explicitly disabled.
-CANDIDATES=$(echo "$ZFS_LIST" | awk -F '\t' \
-	'tolower($2) !~ /false/ && tolower($3) !~ /false/ {print $1}' )
-
 # If the --default-exclude flag is set, then exclude all datasets that lack
 # an explicit com.sun:auto-snapshot* property. Otherwise, include them.
-if [ -n "$opt_default_exclude" ]
-then
-	# Get a list of datasets for which snapshots are not explicitly enabled.
-	NOAUTO=$(echo "$ZFS_LIST" | awk -F '\t' \
-		'tolower($2) !~ /true/ && tolower($3) !~ /true/ {print $1}')
+if [ "$opt_includeall" -eq '0' ]; then 
+	# Get a list of datasets for which snapshots are not explicitly disabled.
+	CANDIDATES=$(echo "$ZFS_LIST" | awk -F '\t' \
+		'tolower($2) !~ /false/ && tolower($3) !~ /false/ {print $1}' )
+
+	if [ -n "$opt_default_exclude" ]
+	then
+		# Get a list of datasets for which snapshots are not explicitly enabled.
+		NOAUTO=$(echo "$ZFS_LIST" | awk -F '\t' \
+			'tolower($2) !~ /true/ && tolower($3) !~ /true/ {print $1}')
+	else
+		# Get a list of datasets for which snapshots are explicitly disabled.
+		NOAUTO=$(echo "$ZFS_LIST" | awk -F '\t' \
+			'tolower($2) ~ /false/ || tolower($3) ~ /false/ {print $1}')
+	fi 
 else
-	# Get a list of datasets for which snapshots are explicitly disabled.
-	NOAUTO=$(echo "$ZFS_LIST" | awk -F '\t' \
-		'tolower($2) ~ /false/ || tolower($3) ~ /false/ {print $1}')
+	CANDIDATES=$(echo "$ZFS_LIST" | awk -F '\t' '{print $1}')
 fi
 
 # Initialize the list of datasets that will get a recursive snapshot.
@@ -1117,7 +1133,30 @@ then
 			exit 301
 			;;
 	esac
+	
+	if [ -n $opt_limit ]; then
+		runs='1'
+		condition='1'
+		while [ $condition -eq '1' ]; do
+			load=$(eval "$opt_sendtocmd" "uptime")
+			load=$(echo ${load##*"load average"} | awk '{print $2}' | awk -F'.' '{print $1}')
+			if [ $load -ge $opt_limit -a $runs -lt '3' ]; then
+				print_log warning "Over load limit on remote machine. Going for sleep for 5 minutes. (run #$runs, load still $load)"
+				sleep 300
+			else
+				if [ $load -ge $opt_limit ]; then
+				    opt_send="no"
+				    opt_keep=''
+				    print_log warning "Over load limit on remote machine. Will not send to remote. (run #$runs, load still $load)"
+                fi
+				condition='0'
+			fi
+			runs=$(( $runs + 1 ))
+		done
+	fi
+fi
 
+if [ "$opt_send" != "no" ]; then
 	MOUNTED_LIST_REM=$(eval do_getmountedfs "remote")
 
 	ZFS_REMOTE_LIST=$(eval "$opt_sendtocmd" zfs list -H -t filesystem,volume -s name -o name) \
